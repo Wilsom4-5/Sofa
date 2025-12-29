@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JD4SB8P74B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JD4SB8P74B');
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Visualizador AR - Sofá</title>
@@ -11,7 +19,6 @@
       body { margin: 0; padding: 0; background-color: #f0f0f0; }
       model-viewer { width: 100vw; height: 100vh; }
 
-      /* Estilo do Botão AR Personalizado */
       #ar-button {
         background-image: url(https://modelviewer.dev/shared-assets/icons/ic_view_in_ar_new_googblue_48dp.png);
         background-repeat: no-repeat;
@@ -33,29 +40,7 @@
         border: 1px solid #DADCE0;
       }
 
-      #ar-button:active {
-        background-color: #E8EAED;
-      }
-
-      #ar-button:focus {
-        outline: none;
-      }
-
-      #ar-button:focus-visible {
-        outline: 1px solid #4285f4;
-      }
-
-      @keyframes circle {
-        from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); }
-        to   { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); }
-      }
-
-      @keyframes elongate {
-        from { transform: translateX(100px); }
-        to   { transform: translateX(-100px); }
-      }
-
-      model-viewer > #ar-prompt {
+      #ar-prompt {
         position: absolute;
         left: 50%;
         bottom: 175px;
@@ -67,14 +52,21 @@
         display: block;
       }
 
-      model-viewer > #ar-prompt > img {
-        animation: circle 4s linear infinite;
+      @keyframes circle {
+        from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); }
+        to   { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); }
+      }
+
+      @keyframes elongate {
+        from { transform: translateX(100px); }
+        to   { transform: translateX(-100px); }
       }
     </style>
   </head>
 <body>
 
     <model-viewer 
+        id="meu-sofa"
         src="Sofa.blend-otimizad.glb" 
         ar 
         ar-modes="webxr scene-viewer quick-look" 
@@ -94,6 +86,41 @@
         </div>
 
     </model-viewer>
+
+    <script>
+      const modelViewer = document.querySelector('#meu-sofa');
+      let tempoInicio;
+
+      modelViewer.addEventListener('ar-status', (event) => {
+        // DETECTA QUANDO ENTROU NO AR
+        if (event.detail.status === 'session-started') {
+          tempoInicio = Date.now(); // Marca a hora de início
+          
+          // Dispara para o Google que o botão foi clicado com sucesso
+          gtag('event', 'ar_session_start', {
+            'event_category': 'Realidade Aumentada',
+            'event_label': 'Sofa Otimizado'
+          });
+          console.log("Iniciou AR - Evento enviado");
+        }
+
+        // DETECTA QUANDO SAIU DO AR
+        if (event.detail.status === 'not-presenting' && tempoInicio) {
+          const tempoFinal = Date.now();
+          const tempoTotalSegundos = Math.round((tempoFinal - tempoInicio) / 1000);
+
+          // Dispara para o Google o tempo que ele ficou lá dentro
+          gtag('event', 'ar_session_duration', {
+            'event_category': 'Realidade Aumentada',
+            'event_label': 'Sofa Otimizado',
+            'value': tempoTotalSegundos // Envia os segundos como valor
+          });
+          
+          tempoInicio = null; // Reseta o cronômetro
+          console.log("Saiu do AR. Tempo total: " + tempoTotalSegundos + "s");
+        }
+      });
+    </script>
 
 </body>
 </html>
